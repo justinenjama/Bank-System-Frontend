@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+/*import React, { useState } from 'react'
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,4 +17,4 @@ const Profile = () => {
     )
 }
 
-export default Profile;
+export default Profile;*/

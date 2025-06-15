@@ -106,7 +106,7 @@ const VerifyOtp: React.FC = () => {
             const newCount = resendCount + 1;
             setResendCount(newCount);
             sessionStorage.setItem("otp_resend_count", newCount.toString());
-            setTimer(300); // Reset timer
+            setTimer(300);
         } catch {
             toast.error("Failed to resend OTP. Try again later.");
         } finally {

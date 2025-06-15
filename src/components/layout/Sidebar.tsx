@@ -26,7 +26,6 @@ export default function Sidebar({
 
     return (
         <>
-            {/* Overlay for mobile */}
             <div
                 className={`fixed inset-0 w-64 bg-white bg-opacity-40 z-10 md:hidden transition-opacity duration-300 ${sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                     }`}
