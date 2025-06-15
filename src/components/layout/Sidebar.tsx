@@ -38,7 +38,7 @@ export default function Sidebar({
                     } md:translate-x-0 md:opacity-100`}
             >
                 <h2 className="text-xl font-bold m-4 text-blue-600">Navigation</h2>
-                <nav className="flex flex-col space-y-3">
+                <nav className="flex flex-col space-y-2">
                     <NavLink
                         to="/"
                         onClick={closeSidebar}

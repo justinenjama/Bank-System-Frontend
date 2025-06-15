@@ -110,7 +110,7 @@ const PendingApplications = () => {
                 <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
                 <main className="flex-1 p-6 bg-gray-100 dark:bg-gray-900">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Pending Till Applications</h1>
+                        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Pending Applications</h1>
                         <button
                             onClick={refreshPage}
                             title="Refresh applications"

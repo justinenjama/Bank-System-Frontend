@@ -21,7 +21,7 @@ const Home: React.FC = () => {
             <div className="flex flex-1 pt-[64px] pb-[60px] overflow-hidden">
                 <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
                 <main className="flex-1 overflow-y-auto bg-gray-200 p-6 custom-scrollbar">
-                    <div className="relative w-full h-48 md:h-56 mb-8 rounded-lg overflow-hidden text-left">
+                    <div className="relative w-full h-48 md:h-56 mb-8 mt-8 rounded-lg overflow-hidden text-left">
                         <img src={BannerImg} alt="Bank Offer" className="absolute inset-0 w-full h-full object-cover" />
                     </div>
                     <AccountsOverview />

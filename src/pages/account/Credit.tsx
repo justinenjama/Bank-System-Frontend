@@ -86,7 +86,7 @@ export default function Credit() {
                 amount,
                 pin: pinNumber,
             });
-
+            console.log(response);
             if (response.responseCode === "200") {
                 toast.success(response.responseMessage);
                 setAccountInfo(response.accountInfo ?? null);
