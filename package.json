@@ -9,7 +9,7 @@
         "build": "tsc -b && vite build",
         "preview": "vite preview",
         "predeploy": "npm run build",
-        "deploy": "gh-pages -d dist -r https://github.com/justinenjama/Bank-System-Frontend.git",
+        "deploy": "gh-pages -d dist -r https://github.com/justinenjama/Bank-System-Frontend.git -b gh-pages",
         "lint": "eslint ."
     },
     "dependencies": {
