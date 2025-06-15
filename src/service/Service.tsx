@@ -1,0 +1,310 @@
+import axios from 'axios';
+import type { LoanApplicationRequest } from '../types/LoanApplicationRequest';
+import type { ResetType } from '../types/ResetType';
+import type { PayBillRequestType } from '../types/PayBillRequestType';
+import type { TillRequestType } from '../types/TillRequestType';
+import type { AgentRequestType } from '../types/AgentRequestType';
+
+const API = axios.create({
+    baseURL: 'http://localhost:8080',
+});
+
+const publicEndpoints = [
+    '/user/login',
+    '/user/signup',
+    '/user/forgotpassword',
+    '/user/checkemail',
+    '/user/checkcontact',
+];
+
+API.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    const isPublic = publicEndpoints.some((url) =>
+        config.url?.startsWith(url)
+    );
+    if (!isPublic && token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+
+// ====================== AUTH =======================
+
+export const signUp = async (payload: any) => {
+    const response = await API.post('/user/signup', payload);
+    return response.data;
+};
+
+export const login = async (payload: any) => {
+    const response = await API.post('/user/login', payload);
+    return response.data;
+};
+
+export const logout = async () => {
+    const response = await API.post('/user/logout');
+    return response.data;
+};
+export const verifyOtp = async ({ email, otp }: { email: string, otp: string }) => {
+    try {
+        const response = await API.post('/user/verify-otp', { email, otp });
+        return response.data;
+    } catch (error: any) {
+        console.error("OTP verification error:", error?.response?.data || error.message);
+        throw error?.response?.data || { responseCode: '500', responseMessage: 'Unexpected error' };
+    }
+};
+
+export const resendOtp = async (email: string) => {
+    try {
+        const response = await API.post('/user/resend-otp', { email });
+        return response.data;
+    } catch (error: any) {
+        console.error("Resend OTP error:", error?.response?.data || error.message);
+        throw error?.response?.data || { responseCode: '500', responseMessage: 'Unexpected error' };
+    }
+};
+
+
+// ====================== TRANSACTIONS =======================
+
+export const creditAccount = async (data: { amount: number; accountNumber: string; pin: number }) => {
+    const response = await API.post('/account/credit', data);
+    return response.data;
+};
+export const debitAccount = async (data: { agentNumber: string; amount: number; pin: number }) => {
+    const response = await API.post("/account/debit", data);
+    return response.data;
+};
+export const transfer = async (data: {
+    destinationAccount: string; amount: number; pin: number
+}) => {
+    const response = await API.post("/account/transfer", data);
+    return response.data;
+};
+
+export const addSavings = async (data: { amount: number; lockPeriodDays: number; pinNumber: number; }) => {
+    const response = await API.post("/account/savings", data);
+    return response.data;
+};
+
+export const withdrawSavings = async (amount: number, pin: number) => {
+    const response = await API.post(`/account/savings/withdraw?amount=${amount}&pin=${pin}`);
+    return response.data;
+};
+
+export const viewSavingsBalance = async () => {
+    const response = await API.get('/account/savings/balance');
+    return response.data;
+};
+
+export const getRecentTransactions = async () => {
+    const response = await API.get("/account/recent-transactions");
+    return response.data;
+};
+// ====================== PROFILE =======================
+
+export const fetchProfile = async () => {
+    const response = await API.get('/user/profile');
+    return response.data;
+};
+
+export const updateProfile = async (payload: any) => {
+    const response = await API.put('/user/update', payload);
+    return response.data;
+};
+
+// ====================== LOGIN HISTORY =======================
+
+export const fetchLoginHistory = async (page: number = 0, size: number = 10) => {
+    const response = await API.get(`/user-management/login-history?page=${page}&size=${size}`);
+    return response.data;
+};
+
+// ====================== NOTIFICATIONS =======================
+
+export const getUserNotifications = async (
+    userId: number,
+    page: number = 0,
+    size: number = 10
+) => {
+    try {
+        const params = { page, size };
+        const response = await API.get(`/notifications/${userId}`, { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user notifications:', error);
+        throw error;
+    }
+};
+
+export const getUnreadNotifications = async (userId: number) => {
+    try {
+        const response = await API.get(`/notifications/unread/${userId}`);
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching unread notifications:', error);
+        throw error;
+    }
+};
+
+export const markNotificationsAsRead = async (ids: number[]) => {
+    try {
+        if (!ids || ids.length === 0) return null;
+        const response = await API.post(`/notifications/mark-as-read`, ids);
+        return response.data;
+    } catch (error) {
+        console.error('Error marking notifications as read:', error);
+        throw error;
+    }
+};
+
+// ====================== SERVER VALIDATION =======================
+export const validateEmail = async (email: string) => {
+    const response = await API.get<boolean>(`/user/checkemail?email=${encodeURIComponent(email)}`);
+    return { exists: response.data };
+};
+
+export const validatePhoneNumber = async (phoneNumber: string) => {
+    const response = await API.get<boolean>(`/user/checkcontact?contactNumber=${encodeURIComponent(phoneNumber)}`);
+    return { exists: response.data };
+};
+export const validateAccountNumber = async (accountNumber: string) => {
+    const response = await API.get<boolean>(
+        `/user/checkaccount?accountNumber=${encodeURIComponent(accountNumber)}`
+    );
+    return { exists: response.data };
+};
+export const validateAgentNumber = async (agentNumber: string) => {
+    const response = await API.get<boolean>(
+        `/user/checkagent?agentNumber=${encodeURIComponent(agentNumber)}`
+    );
+    return { exists: response.data };
+};
+
+// ====================== Forgot Password ====================
+export const requestResetCode = async (email: string) => {
+    const response = await API.post('/user/forgotpassword', null, {
+        params: { email },
+    });
+    return response.data;
+};
+
+export const verifyResetCode = async (email: string, code: number) => {
+    const response = await API.post('/user/forgotpassword/verify', null, {
+        params: { email, code },
+    });
+    return response.data;
+};
+
+export const resetPassword = async (data: ResetType) => {
+    const response = await API.post('/user/forgotpassword/reset', data);
+    return response.data;
+};
+// ====================== ALERTS =======================
+export const fetchAlertCounts = async () => {
+    const [fraud, update, failure, attack] = await Promise.all([
+        API.get('/bank/fraud-alerts-count'),
+        API.get('/bank/system-update-alerts-count'),
+        API.get('/bank/system-failure-alerts-count'),
+        API.get('/bank/system-attack-alerts-count'),
+    ]);
+    return {
+        fraud: fraud.data,
+        systemUpdate: update.data,
+        systemFailure: failure.data,
+        systemAttack: attack.data,
+    };
+};
+export const fetchFraudAlerts = async (page = 0, size = 10) => {
+    const response = await API.get('/bank/fraud-alerts', {
+        params: { pageNo: page, pageSize: size }
+    });
+    return response.data;
+};
+export const fetchFraudAlertById = async (id: number) => {
+    const response = await API.get(`/bank/fraud-alert/${id}`);
+    return response.data;
+};
+export const fetchSystemUpdateAlerts = async (page = 0, size = 10) => {
+    const response = await API.get('/bank/system-update-alerts', {
+        params: { pageNo: page, pageSize: size }
+    });
+    return response.data;
+};
+export const addSystemUpdateAlert = async (alertData: any) => {
+    const response = await API.post('/bank/system-update-alerts/add', alertData);
+    return response.data;
+};
+export const fetchSystemFailureAlerts = async (page = 0, size = 10) => {
+    const response = await API.get('/bank/system-failure-alerts', {
+        params: { pageNo: page, pageSize: size }
+    });
+    return response.data;
+};
+export const fetchSystemAttackAlerts = async (page = 0, size = 10) => {
+    const response = await API.get('/bank/system-attack-alerts', {
+        params: { pageNo: page, pageSize: size }
+    });
+    return response.data;
+};
+//============ ADMIN DASHBOARD ===============
+export const approveTransaction = async (transactionId: Number) => {
+    const response = await API.post(`/account/admin/approve/${transactionId}`);
+    return response.data;
+};
+
+export const getPendingTransactions = async (page = 0, size = 5) => {
+    const response = await API.get(`/account/admin/transactions/pending?page=${page}&size=${size}`);
+    return response.data;
+};
+
+export const totalSavings = async () => {
+    const response = await API.get('/account/total');
+    return response.data;
+};
+
+export const rejectTransaction = async (transactionId: number) => {
+    const response = await API.post(`/account/admin/transaction/reject/${transactionId}`);
+    return response.data;
+};
+
+export const getPendingApplications = async (page = 0, size = 5) => {
+    const response = await API.get(`/apply/admin/applications/pending?page=${page}&size=${size}`);
+    return response.data;
+};
+
+
+export const approveApplication = async (id: number) => {
+    const response = await API.post(`/apply/approve/${id}`);
+    return response.data;
+};
+export const rejectApplication = async (id: number) => {
+    const response = await API.post(`/apply/reject/${id}`);
+    return response.data;
+};
+//=========================== LOAN ==================
+export const fetchActiveLoans = async (page: number, size: number) => {
+    const response = await API.get(`/loans/active?page=${page}&size=${size}`);
+    return response.data;
+};
+
+//=========================== APPLICATIONS ==================
+export const applyForPayBill = async (data: PayBillRequestType) => {
+    const response = await API.post("/apply/pay-bill", data);
+    return response.data;
+};
+
+export const applyForTill = async (data: TillRequestType) => {
+    const response = await API.post("/apply/till", data);
+    return response.data;
+};
+
+export const applyForAgent = async (data: AgentRequestType) => {
+    const response = await API.post("/apply/agent", data);
+    return response.data;
+};
+export const applyForLoan = async (data: LoanApplicationRequest) => {
+    const response = await API.post("/loan/apply", data);
+    return response.data;
+};
