@@ -108,9 +108,9 @@ const Login: React.FC = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <img src={LoginImage} alt="Bank Login" className="absolute inset-0 w-full h-full object-cover opacity-10" />
+            <img src={LoginImage} alt="Bank Login" className="absolute inset-0 w-full h-full object-cover" />
             <div className="w-full max-w-md p-6 bg-white rounded shadow-xl absolute">
-                <h2 className="text-2xl font-bold mb-6 text-center text-green-700">Secure Login</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-green-700">Login</h2>
                 <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                     <input
                         type="email"
