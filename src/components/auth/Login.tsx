@@ -50,7 +50,7 @@ const Login: React.FC = () => {
                     toast.error("Your account is locked or pending approval.");
                     return;
                 case "401":
-                    toast.error("Invalid email or password.");
+                    toast.error(data.responseMessage || "Invalid email or password.");
                     return;
                 case "206":
                     toast.info("OTP verification required for untrusted device.", { autoClose: 3000 });

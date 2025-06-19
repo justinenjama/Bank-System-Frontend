@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from '../../components/layout/Header';
 import Sidebar from '../../components/layout/Sidebar';
 import Footer from '../../components/layout/Footer';
-import { getPendingTransactions, getPendingApplications } from '../../service/Service';
+import { getPendingTransactions, getPendingApplications, getPendingSignups } from '../../service/Service';
 import { useNavigate } from 'react-router-dom';
 
 import { Bell, Clock, Settings, ArrowRight } from 'lucide-react';
@@ -12,6 +12,7 @@ const AdminDashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [pendingTransactionCount, setPendingTransactionCount] = useState(0);
     const [pendingApplicationCount, setPendingApplicationCount] = useState(0);
+    const [PendingSignupsCount, setPendingSignupsCount] = useState(0);
 
     const navigate = useNavigate();
 
@@ -26,15 +27,24 @@ const AdminDashboard = () => {
                 const pendingTransactions = transactions.filter((tx: any) => tx.status === 'PENDING');
                 setPendingTransactionCount(pendingTransactions.length);
             } catch (err) {
-                console.error('Error fetching pending withdrawals:', err);
+                console.error('Error fetching pending transactions:', err);
             }
 
             try {
-                const agentApplications = await getPendingApplications(1, 5);
-                const pendingApplications = agentApplications.filter((app: any) => app.status === 'PENDING');
+                const applicationData = await getPendingApplications();
+                const applications = applicationData.content || [];
+                const pendingApplications = applications.filter((app: any) => app.status === 'PENDING');
                 setPendingApplicationCount(pendingApplications.length);
             } catch (err) {
                 console.error('Error fetching pending applications:', err);
+            }
+            try {
+                const signUpData = await getPendingSignups();
+                const signups = signUpData.content || [];
+                const pendingSignups = signups.filter((s: any) => s.status === "PENDING_APPROVAL");
+                setPendingSignupsCount(pendingSignups.length);
+            } catch (error) {
+                console.error('Error fetching pending signup requests: ', error);
             }
         }
 
@@ -76,6 +86,21 @@ const AdminDashboard = () => {
                                         <p className="text-sm text-gray-600 dark:text-gray-300">Unread Alerts</p>
                                         <p className="text-xl font-bold">4</p>
                                     </div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-4 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <Clock className="text-yellow-500 w-8 h-8" />
+                                        <div>
+                                            <p className="text-sm text-gray-600 dark:text-gray-300">Pending Signups</p>
+                                            <p className="text-xl font-bold">{PendingSignupsCount}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => navigate('/admin/pending-signups')}
+                                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+                                    >
+                                        View <ArrowRight className="w-4 h-4 ml-1" />
+                                    </button>
                                 </div>
                                 <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-4 flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-4">

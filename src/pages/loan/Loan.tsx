@@ -1,19 +1,18 @@
 import { useState } from "react";
-import Credit from "../account/Credit";
-import Debit from "../account/Debit";
-import Transfer from "../account/Transfer";
-import Savings from "../account/Saving";
-import PayBills from "../account/PayBills";
-import BuyGoods from "../account/BuyGoods";
+import ApplyLoan from "../loan/LoanApplication";
+import LoanStatus from "../loan/LoanStatus";
+import RepayLoan from "../loan/LoanRepayment";
+import LoanHistory from "../loan/LoanHistory";
+import LoanCalculator from "../loan/LoanCalculator";
 import { Toaster } from "react-hot-toast";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import Sidebar from "../../components/layout/Sidebar";
 
-export default function Account() {
+export default function Loan() {
     const [activeTab, setActiveTab] = useState<
-        "credit" | "debit" | "transfer" | "savings" | "paybills" | "buygoods"
-    >("credit");
+        "apply" | "status" | "repay" | "history" | "calculator"
+    >("apply");
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -30,24 +29,22 @@ export default function Account() {
                 <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
                 <main className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-gray-200">
                     <div className="max-w-5xl mx-auto space-y-8">
-                        <h2 className="text-3xl font-bold text-gray-800">Account Operations</h2>
+                        <h2 className="text-3xl font-bold text-gray-800">Loan Services</h2>
 
                         <div className="flex flex-wrap gap-4">
-                            <TabButton label="Credit" active={activeTab === "credit"} onClick={() => setActiveTab("credit")} />
-                            <TabButton label="Debit" active={activeTab === "debit"} onClick={() => setActiveTab("debit")} />
-                            <TabButton label="Transfer" active={activeTab === "transfer"} onClick={() => setActiveTab("transfer")} />
-                            <TabButton label="Savings" active={activeTab === "savings"} onClick={() => setActiveTab("savings")} />
-                            <TabButton label="Pay Bills" active={activeTab === "paybills"} onClick={() => setActiveTab("paybills")} />
-                            <TabButton label="Buy Goods" active={activeTab === "buygoods"} onClick={() => setActiveTab("buygoods")} />
+                            <TabButton label="Apply Loan" active={activeTab === "apply"} onClick={() => setActiveTab("apply")} />
+                            <TabButton label="Loan Status" active={activeTab === "status"} onClick={() => setActiveTab("status")} />
+                            <TabButton label="Repay Loan" active={activeTab === "repay"} onClick={() => setActiveTab("repay")} />
+                            <TabButton label="Loan History" active={activeTab === "history"} onClick={() => setActiveTab("history")} />
+                            <TabButton label="Calculator" active={activeTab === "calculator"} onClick={() => setActiveTab("calculator")} />
                         </div>
 
                         <div>
-                            {activeTab === "credit" && <Credit />}
-                            {activeTab === "debit" && <Debit />}
-                            {activeTab === "transfer" && <Transfer />}
-                            {activeTab === "savings" && <Savings />}
-                            {activeTab === "paybills" && <PayBills />}
-                            {activeTab === "buygoods" && <BuyGoods />}
+                            {activeTab === "apply" && <ApplyLoan />}
+                            {activeTab === "status" && <LoanStatus />}
+                            {activeTab === "repay" && <RepayLoan />}
+                            {activeTab === "history" && <LoanHistory />}
+                            {activeTab === "calculator" && <LoanCalculator />}
                         </div>
                     </div>
                 </main>
@@ -60,7 +57,6 @@ export default function Account() {
     );
 }
 
-// TabButton component
 function TabButton({
     label,
     active,

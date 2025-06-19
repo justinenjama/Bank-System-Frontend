@@ -18,16 +18,15 @@ const publicEndpoints = [
 ];
 
 API.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    const isPublic = publicEndpoints.some((url) =>
-        config.url?.startsWith(url)
-    );
+    const token = localStorage.getItem("token");
+    const url = config.url?.startsWith("/") ? config.url : `/${config.url}`;
+    const isPublic = publicEndpoints.some((publicUrl) => url.startsWith(publicUrl));
+
     if (!isPublic && token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });
-
 
 // ====================== AUTH =======================
 
@@ -82,7 +81,15 @@ export const transfer = async (data: {
     const response = await API.post("/account/transfer", data);
     return response.data;
 };
+export const payBills = async (data: { payBillNumber: string; amount: number; pin: number }) => {
+    const response = await API.post("/account/pay-bills", data);
+    return response.data;
+};
 
+export const buyGoods = async (data: { tillNumber: string; amount: number; pin: number }) => {
+    const response = await API.post("/account/buy-goods", data);
+    return response.data;
+};
 export const addSavings = async (data: { amount: number; lockPeriodDays: number; pinNumber: number; }) => {
     const response = await API.post("/account/savings", data);
     return response.data;
@@ -141,6 +148,7 @@ export const getUserNotifications = async (
 export const getUnreadNotifications = async (userId: number) => {
     try {
         const response = await API.get(`/notifications/unread/${userId}`);
+        console.log(response);
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.error('Error fetching unread notifications:', error);
@@ -181,7 +189,18 @@ export const validateAgentNumber = async (agentNumber: string) => {
     );
     return { exists: response.data };
 };
-
+export const validatePayBillNumber = async (payBillNumber: string) => {
+    const response = await API.get<boolean>(
+        `/user/checkpaybill?payBillNumber=${encodeURIComponent(payBillNumber)}`
+    );
+    return { exists: response.data };
+};
+export const validateTillNumber = async (tillNumber: string) => {
+    const response = await API.get<boolean>(
+        `/user/checktill?tillNumber=${encodeURIComponent(tillNumber)}`
+    );
+    return { exists: response.data };
+};
 // ====================== Forgot Password ====================
 export const requestResetCode = async (email: string) => {
     const response = await API.post('/user/forgotpassword', null, {
@@ -283,12 +302,34 @@ export const rejectApplication = async (id: number) => {
     const response = await API.post(`/apply/reject/${id}`);
     return response.data;
 };
+export const getPendingSignups = async (page: number = 0, size: number = 5) => {
+    const response = await API.get(`/admin/users/pending-signups?page=${page}&size=${size}`);
+    return response.data;
+};
+export const approveSignup = async (id: number) => {
+    const response = await API.put(`/admin/users/activate/pending-signup/${id}`);
+    return response.data;
+};
 //=========================== LOAN ==================
 export const fetchActiveLoans = async (page: number, size: number) => {
     const response = await API.get(`/loans/active?page=${page}&size=${size}`);
     return response.data;
 };
-
+export const activateLoan = async (loanId: number) => {
+    const response = await API.put(`/loan/activate/${loanId}`);
+    return response.data;
+};
+export const getLoanDetails = async (loanId: number) => {
+    const response = await API.get(`/loan/${loanId}`);
+    return response.data;
+};
+export const repayLoan = async (data: {
+    amount: number;
+    pin: number;
+}) => {
+    const response = await API.post("/loan/repay", data);
+    return response.data;
+};
 //=========================== APPLICATIONS ==================
 export const applyForPayBill = async (data: PayBillRequestType) => {
     const response = await API.post("/apply/pay-bill", data);

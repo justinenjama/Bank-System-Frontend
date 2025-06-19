@@ -21,6 +21,7 @@ import Applications from './pages/applications/Applications';
 import VerifyOtp from './components/auth/VerifyOtp';
 import UserHistoryPage from './pages/UserHistoryPage';
 import PendingApplicationsPage from './pages/admin/PendingApplicationsPage';
+import PendingSignup from './pages/admin/PendingSignup';
 
 const App = () => {
     return (
@@ -65,6 +66,11 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+                        <Route path='/admin/pending-signups' element={
+                            <AuthGuard>
+                                <PendingSignup />
+                            </AuthGuard>
+                        }/>
                         <Route path="/admin/loans/active" element={
                             <AuthGuard>
                                 <ActiveLoans />
@@ -107,6 +113,10 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+                        {/*<Route path="/repay-loan" element={<LoanRepayment />} />
+                        <Route path="/loan/activate" element={<LoanActivation />} />
+                        <Route path="/loan/details" element={<LoanDetails />} />*/}
+
                     </Routes>
                     {/* Toast container */}
                     <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />

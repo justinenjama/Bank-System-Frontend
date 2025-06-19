@@ -45,7 +45,6 @@ export default function Credit() {
                     toast.error("Account number does not exist");
                     return;
                 }
-
                 setStep(2);
             } catch (err) {
                 toast.error("Failed to validate account. Try again.");

@@ -5,6 +5,7 @@ import Spinner from '../Spinner';
 import registerImage from "../../assets/img/loan-bg.png";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { toast } from 'react-toastify';
 
 const isValidEmailFormat = (email: string) =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
@@ -61,6 +62,7 @@ const Signup: React.FC = () => {
         dateOfBirth: null as Date | null,
         nextOfKin: '',
         nextOfKinRelationship: '',
+        nationalIdentityCardNumber: '',
         district: '',
         location: '',
         subLocation: '',
@@ -142,7 +144,7 @@ const Signup: React.FC = () => {
     const isStepValid = () => {
         switch (step) {
             case 1:
-                return form.firstName && form.lastName && form.otherName && form.gender;
+                return form.firstName && form.lastName && form.otherName && form.gender && form.nationalIdentityCardNumber && /^\d{6,10}$/.test(form.nationalIdentityCardNumber);
             case 2:
                 return form.email && emailStatus === 'valid' &&
                     form.phoneNumber && phoneStatus === 'valid' &&
@@ -177,8 +179,7 @@ const Signup: React.FC = () => {
         if (!isStepValid()) {
             setError('Please correct the highlighted fields.');
             return;
-        }
-
+        } 
         setLoading(true);
         setError(null);
         setSuccessMessage(null);
@@ -193,6 +194,7 @@ const Signup: React.FC = () => {
         try {
             const res = await signUpAPI(normalizedForm);
             setSuccessMessage(res.message || 'Signup successful!');
+            toast.success(res.responseMessage || 'Signup successful!');
             navigate('/login');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Signup failed. Please try again.');
@@ -269,6 +271,20 @@ const Signup: React.FC = () => {
                                     onChange={handleChange}
                                     className={`w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${!form.otherName.trim() && error ? 'border-red-600' : 'border-gray-300'
                                         }`}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="nationalIdentityCardNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                                    National ID Number
+                                </label>
+                                <input
+                                    type="number"
+                                    id="nationalIdentityCardNumber"
+                                    name="nationalIdentityCardNumber"
+                                    value={form.nationalIdentityCardNumber}
+                                    onChange={handleChange}
+                                    className={`w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${!form.nationalIdentityCardNumber && error ? 'border-red-600' : 'border-gray-300'}`}
                                     required
                                 />
                             </div>
