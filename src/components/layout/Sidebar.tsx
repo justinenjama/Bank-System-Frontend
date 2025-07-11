@@ -51,18 +51,6 @@ export default function Sidebar({
                     </NavLink>
 
                     <NavLink
-                        to="/profile"
-                        onClick={closeSidebar}
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded hover:bg-blue-100 transition-colors duration-300 ${isActive ? "text-blue-600 font-semibold" : "text-gray-700"
-                            }`
-                        }
-                    >
-                        <Squares2X2Icon className="h-5 w-5" />
-                        Profile
-                    </NavLink>
-
-                    <NavLink
                         to="/notifications"
                         onClick={closeSidebar}
                         className={({ isActive }) =>
@@ -110,6 +98,19 @@ export default function Sidebar({
                     </NavLink>
 
                     <NavLink
+                        to="/loan"
+                        onClick={closeSidebar}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded hover:bg-blue-100 transition-colors duration-300 ${
+                                isActive ? "text-blue-600 font-semibold" : "text-gray-700"
+                            }`
+                        }
+                    >
+                        <BanknotesIcon className="h-5 w-5" />
+                        Loan Services
+                    </NavLink>
+                    
+                    <NavLink
                         to="/analytics"
                         onClick={closeSidebar}
                         className={({ isActive }) =>
@@ -119,18 +120,6 @@ export default function Sidebar({
                     >
                         <ArrowTrendingUpIcon className="h-5 w-5" />
                         Analytics
-                    </NavLink>
-
-                    <NavLink
-                        to="/settings"
-                        onClick={closeSidebar}
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded hover:bg-blue-100 transition-colors duration-300 ${isActive ? "text-blue-600 font-semibold" : "text-gray-700"
-                            }`
-                        }
-                    >
-                        <Cog6ToothIcon className="h-5 w-5" />
-                        Settings
                     </NavLink>
 
                     {user?.role === "ADMIN" && (

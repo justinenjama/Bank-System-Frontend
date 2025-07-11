@@ -10,51 +10,59 @@ const VerifyOtp: React.FC = () => {
     const location = useLocation();
     const { setUser } = useAuth();
 
-    const emailFromLocation = (location.state as any)?.email;
-    const emailFromSession = sessionStorage.getItem("otp_email");
-    const email = emailFromLocation || emailFromSession;
-
+    const email = (location.state as any)?.email || sessionStorage.getItem("otp_email");
+    const deviceId = localStorage.getItem("device_id");
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
-    const [timer, setTimer] = useState(300); // 5 minutes countdown
-    const [resendCount, setResendCount] = useState<number>(() => {
+    const [timer, setTimer] = useState(300);
+    const [resendCount, setResendCount] = useState(() => {
         const count = sessionStorage.getItem("otp_resend_count");
         return count ? parseInt(count, 10) : 0;
     });
 
+    const [ip, setIp] = useState('Unknown');
+    const [userAgent, setUserAgent] = useState('Unknown');
+
     useEffect(() => {
-        if (!email) {
-            toast.error("Missing email for OTP verification.");
+        if (!email || !deviceId) {
+            toast.error("Missing OTP context.");
             navigate("/login");
             return;
         }
 
+        fetch("https://api.ipify.org?format=json")
+            .then(res => res.json())
+            .then(data => setIp(data.ip))
+            .catch(() => setIp("Unknown"));
+
+        setUserAgent(navigator.userAgent);
+
         const countdown = setInterval(() => {
-            setTimer((prev) => {
-                if (resendCount >= 5) return 0;
-                return prev > 0 ? prev - 1 : 0;
-            });
+            if (resendCount < 5) {
+                setTimer(prev => (prev > 0 ? prev - 1 : 0));
+            }
         }, 1000);
 
         return () => clearInterval(countdown);
-    }, [email, navigate, resendCount]);
+    }, [email, deviceId, navigate, resendCount]);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         if (otp.trim().length < 4) {
-            toast.error("Please enter a valid OTP (min 4 digits).");
+            toast.error("Enter a valid OTP (min 4 digits).");
             return;
         }
 
         setLoading(true);
         try {
-            const res = await verifyOtp({ email, otp });
-
-            if (res.responseCode === "401") {
-                toast.error(res.responseMessage || "Invalid or expired OTP.");
-                return;
-            }
+            const res = await verifyOtp({
+                email,
+                otp,
+                ipAddress: ip,
+                userAgent,
+                deviceId: deviceId || "Unknown",
+            });
 
             if (res.responseCode !== "200" || !res.user) {
                 toast.error(res.responseMessage || "OTP verification failed.");
@@ -66,27 +74,23 @@ const VerifyOtp: React.FC = () => {
             const userObject = {
                 ...user,
                 fullName,
-                token: res.token,
                 role: user.role,
             };
 
-            localStorage.setItem("token", res.token);
-            localStorage.setItem("user", JSON.stringify(userObject));
-            localStorage.setItem("role", user.role);
+            setUser(userObject);
             sessionStorage.removeItem("otp_email");
             sessionStorage.removeItem("otp_resend_count");
 
-            setUser(userObject);
             toast.success("OTP verified. Welcome!");
-
             navigate(user.role.toLowerCase() === "admin" ? "/admin" : "/", { replace: true });
 
         } catch (err: any) {
-            toast.error(err?.message || "Verification failed. Please try again.");
+            toast.error(err?.message || "OTP verification failed.");
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleResend = async () => {
         if (resendCount >= 5) {
@@ -102,13 +106,13 @@ const VerifyOtp: React.FC = () => {
                 return;
             }
 
-            toast.success("OTP resent successfully.");
+            toast.success("OTP resent.");
             const newCount = resendCount + 1;
             setResendCount(newCount);
             sessionStorage.setItem("otp_resend_count", newCount.toString());
             setTimer(300);
         } catch {
-            toast.error("Failed to resend OTP. Try again later.");
+            toast.error("Failed to resend OTP.");
         } finally {
             setResending(false);
         }
@@ -126,6 +130,10 @@ const VerifyOtp: React.FC = () => {
                 <h2 className="text-2xl font-semibold mb-4 text-center">Verify OTP</h2>
                 <p className="text-sm text-gray-600 mb-4 text-center">
                     Enter the OTP sent to <strong>{email}</strong>
+                </p>
+                <p className="text-xs text-gray-500 text-center mb-2">
+                    IP: <strong>{ip}</strong><br />
+                    Device: <strong>{userAgent}</strong>
                 </p>
                 <form onSubmit={handleVerify} className="space-y-4">
                     <input

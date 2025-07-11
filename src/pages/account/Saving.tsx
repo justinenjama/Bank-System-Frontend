@@ -68,18 +68,19 @@ export default function Savings() {
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
 
-        const pinNumber = parseInt(pin, 10);
-        if (!pin || isNaN(pinNumber)) {
+        if (!pin || !/^\d+$/.test(pin)) {
             toast.error("Please enter a valid numeric PIN");
             return;
         }
+        const pinParsed = parseInt(pin, 10);
 
         setLoading(true);
         try {
+            
             const response =
                 action === "add"
-                    ? await addSavings({ amount, lockPeriodDays, pinNumber })
-                    : await withdrawSavings(amount, pinNumber);
+                    ? await addSavings({ amount, lockPeriodDays, pin: pinParsed }) // pin is sent as string
+                    : await withdrawSavings(amount, pinParsed);
 
             if (response.responseCode === "200") {
                 toast.success(response.responseMessage || "Transaction successful");

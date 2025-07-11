@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ApplyLoan from "../loan/LoanApplication";
 import LoanStatus from "../loan/LoanStatus";
 import RepayLoan from "../loan/LoanRepayment";
 import LoanHistory from "../loan/LoanHistory";
 import LoanCalculator from "../loan/LoanCalculator";
+import ActivateLoan from "../loan/ActivateLoan";
+import ActiveLoans from "../loan/ActiveLoans";
+
 import { Toaster } from "react-hot-toast";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -11,12 +14,20 @@ import Sidebar from "../../components/layout/Sidebar";
 
 export default function Loan() {
     const [activeTab, setActiveTab] = useState<
-        "apply" | "status" | "repay" | "history" | "calculator"
+        "apply" | "status" | "repay" | "history" | "calculator" | "activate" | "activeLoans"
     >("apply");
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
     const closeSidebar = () => setSidebarOpen(false);
+
+    useEffect(() => {
+        const role = localStorage.getItem("role");
+        setIsAdmin(role === "ADMIN");
+    }, []);
 
     return (
         <div className="flex flex-col h-screen">
@@ -37,7 +48,26 @@ export default function Loan() {
                             <TabButton label="Repay Loan" active={activeTab === "repay"} onClick={() => setActiveTab("repay")} />
                             <TabButton label="Loan History" active={activeTab === "history"} onClick={() => setActiveTab("history")} />
                             <TabButton label="Calculator" active={activeTab === "calculator"} onClick={() => setActiveTab("calculator")} />
+
+                            {isAdmin && (
+                                <>
+                                    <TabButton label="Activate Loan" active={activeTab === "activate"} onClick={() => setActiveTab("activate")} />
+                                    <TabButton label="Active Loans" active={activeTab === "activeLoans"} onClick={() => setActiveTab("activeLoans")} />
+                                </>
+                            )}
                         </div>
+
+                        {activeTab === "activeLoans" && isAdmin && (
+                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mt-4">
+                                <input
+                                    type="text"
+                                    placeholder="Search by Loan ID or Applicant Name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full sm:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        )}
 
                         <div>
                             {activeTab === "apply" && <ApplyLoan />}
@@ -45,6 +75,8 @@ export default function Loan() {
                             {activeTab === "repay" && <RepayLoan />}
                             {activeTab === "history" && <LoanHistory />}
                             {activeTab === "calculator" && <LoanCalculator />}
+                            {activeTab === "activate" && isAdmin && <ActivateLoan />}
+                            {activeTab === "activeLoans" && isAdmin && <ActiveLoans search={searchQuery} />}
                         </div>
                     </div>
                 </main>

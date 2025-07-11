@@ -4,29 +4,13 @@ import type { ResetType } from '../types/ResetType';
 import type { PayBillRequestType } from '../types/PayBillRequestType';
 import type { TillRequestType } from '../types/TillRequestType';
 import type { AgentRequestType } from '../types/AgentRequestType';
+import type { TrustedDeviceType } from '../types/TrustedDeviceType';
 
 const API = axios.create({
-    baseURL: 'http://localhost:8080',
+  baseURL: 'http://localhost:8080',
+  withCredentials: true, 
 });
 
-const publicEndpoints = [
-    '/user/login',
-    '/user/signup',
-    '/user/forgotpassword',
-    '/user/checkemail',
-    '/user/checkcontact',
-];
-
-API.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    const url = config.url?.startsWith("/") ? config.url : `/${config.url}`;
-    const isPublic = publicEndpoints.some((publicUrl) => url.startsWith(publicUrl));
-
-    if (!isPublic && token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
 
 // ====================== AUTH =======================
 
@@ -36,22 +20,32 @@ export const signUp = async (payload: any) => {
 };
 
 export const login = async (payload: any) => {
-    const response = await API.post('/user/login', payload);
+    const response = await API.post('/user/login', payload, {
+        withCredentials: true,
+    });
     return response.data;
 };
 
-export const logout = async () => {
+export const getSessionUser = async () => {
+  const response = await API.get('/user/session');
+  return response.data;
+};
+
+export const logoutService = async () => {
     const response = await API.post('/user/logout');
     return response.data;
 };
-export const verifyOtp = async ({ email, otp }: { email: string, otp: string }) => {
-    try {
-        const response = await API.post('/user/verify-otp', { email, otp });
-        return response.data;
-    } catch (error: any) {
-        console.error("OTP verification error:", error?.response?.data || error.message);
-        throw error?.response?.data || { responseCode: '500', responseMessage: 'Unexpected error' };
-    }
+export const verifyOtp = async (payload: {
+    email: string;
+    otp: string;
+    ipAddress: string;
+    userAgent: string;
+    deviceId: string;
+}) => {
+    const response = await API.post('/user/verify-otp', payload, {
+        withCredentials: true,
+    });
+    return response.data;
 };
 
 export const resendOtp = async (email: string) => {
@@ -90,7 +84,7 @@ export const buyGoods = async (data: { tillNumber: string; amount: number; pin: 
     const response = await API.post("/account/buy-goods", data);
     return response.data;
 };
-export const addSavings = async (data: { amount: number; lockPeriodDays: number; pinNumber: number; }) => {
+export const addSavings = async (data: { amount: number; lockPeriodDays: number; pin: number; }) => {
     const response = await API.post("/account/savings", data);
     return response.data;
 };
@@ -110,16 +104,25 @@ export const getRecentTransactions = async () => {
     return response.data;
 };
 // ====================== PROFILE =======================
-
-export const fetchProfile = async () => {
-    const response = await API.get('/user/profile');
-    return response.data;
+export const fetchUserProfile = async () => {
+  const response = await API.get('/user/profile');
+  return response.data;
 };
 
-export const updateProfile = async (payload: any) => {
-    const response = await API.put('/user/update', payload);
-    return response.data;
+export const updateUserProfile = async (payload: {
+  phoneNumber?: string;
+  alternativePhoneNumber?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  job?: string;
+  nextOfKin?: string;
+  nextOfKinRelationship?: string;
+}) => {
+  const response = await API.put('/user/update', payload);
+  return response.data;
 };
+
 
 // ====================== LOGIN HISTORY =======================
 
@@ -148,7 +151,6 @@ export const getUserNotifications = async (
 export const getUnreadNotifications = async (userId: number) => {
     try {
         const response = await API.get(`/notifications/unread/${userId}`);
-        console.log(response);
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.error('Error fetching unread notifications:', error);
@@ -267,6 +269,45 @@ export const fetchSystemAttackAlerts = async (page = 0, size = 10) => {
     });
     return response.data;
 };
+//================== TRUSTED DEVICE =============
+export const getMyTrustedDevices = async (): Promise<{ content: TrustedDeviceType[] }> => {
+  const response = await API.get('/user/trusted-devices', {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  });
+
+  console.log("Trusted devices raw response:", response);
+
+  return response.data;
+};
+
+
+// Get all trusted devices with pagination and optional filter
+export const getAllTrustedDevices = async (page: number, filter: string = '') => {
+    const response = await API.get(`/admin/trusted-devices`, {
+        params: { page, size: 5, filter }
+    });
+    return response.data;
+};
+
+// Count of all trusted devices
+export const adminTrustedDeviceCount = async () => {
+    const response = await API.get("/admin/trusted-devices/count");
+    return response.data;
+};
+
+// Revoke (delete) a specific trusted device by ID
+export const revokeTrustedDevice = async (id: number) => {
+    const response = await API.delete(`/admin/trusted-device/${id}`);
+    return response.data;
+};
+
+// Export trusted devices as CSV (triggers browser download)
+export const exportTrustedDevicesCSV = () => {
+    window.open('/admin/trusted-devices/export', '_blank');
+};
+
 //============ ADMIN DASHBOARD ===============
 export const approveTransaction = async (transactionId: Number) => {
     const response = await API.post(`/account/admin/approve/${transactionId}`);
@@ -293,7 +334,6 @@ export const getPendingApplications = async (page = 0, size = 5) => {
     return response.data;
 };
 
-
 export const approveApplication = async (id: number) => {
     const response = await API.post(`/apply/approve/${id}`);
     return response.data;
@@ -310,6 +350,48 @@ export const approveSignup = async (id: number) => {
     const response = await API.put(`/admin/users/activate/pending-signup/${id}`);
     return response.data;
 };
+
+// =================== ANOMALY AI SERVICE ENDPOINTS ======================
+
+export const detectAllAnomalies = async () => {
+    const response = await API.get(`/ai/anomalies/all`);
+    return response.data;
+};
+
+export const detectRecentAnomalies = async () => {
+    const response = await API.get(`/ai/anomalies/recent`);
+    return response.data;
+};
+
+export const getAnomalyMap = async (page = 0, size = 5) => {
+    const response = await API.get(`/ai/anomalies/map`, {
+        params: { page, size },
+    });
+    return response.data;
+};
+
+export const getAIFlaggedTransactions = async (page = 0, size = 5) => {
+    const response = await API.get(`/ai/anomalies`, {
+        params: { page, size },
+    });
+    return response.data;
+};
+
+export const clearAnomalyFlag = async (id: number) => {
+    const response = await API.put(`/ai/anomalies/${id}/clear`);
+    return response.data;
+};
+
+export const getAnomalyStats = async () => {
+    const response = await API.get(`/ai/anomalies/stats/daily`);
+    return response.data;
+};
+
+export const getLatestAnomaly = async () => {
+    const response = await API.get(`/ai/anomalies/recent/latest`);
+    return response.data;
+};
+
 //=========================== LOAN ==================
 export const fetchActiveLoans = async (page: number, size: number) => {
     const response = await API.get(`/loans/active?page=${page}&size=${size}`);
@@ -330,6 +412,11 @@ export const repayLoan = async (data: {
     const response = await API.post("/loan/repay", data);
     return response.data;
 };
+export const getActiveLoans = async (page: number, size: number) => {
+    const res = await axios.get(`/loan/active?page=${page}&size=${size}`);
+    return res.data;
+};
+
 //=========================== APPLICATIONS ==================
 export const applyForPayBill = async (data: PayBillRequestType) => {
     const response = await API.post("/apply/pay-bill", data);
@@ -348,4 +435,130 @@ export const applyForAgent = async (data: AgentRequestType) => {
 export const applyForLoan = async (data: LoanApplicationRequest) => {
     const response = await API.post("/loan/apply", data);
     return response.data;
+};
+
+// ====================== BANK STATEMENTS =======================
+export const downloadBankStatement = (from?: string, to?: string) => {
+    const queryParams = new URLSearchParams();
+    if (from) queryParams.append('from', from);
+    if (to) queryParams.append('to', to);
+
+    const url = `/user/statement/download?${queryParams.toString()}`;
+    // Open in new tab to trigger browser preview/download
+    window.open(`http://localhost:8080${url}`, '_blank');
+};
+export const emailBankStatement = async (from?: string, to?: string) => {
+    const queryParams = new URLSearchParams();
+    if (from) queryParams.append('from', from);
+    if (to) queryParams.append('to', to);
+
+    const response = await API.post(`/user/statement/email?${queryParams.toString()}`);
+    return response.data;
+};
+
+// ====================== SETTINGS =======================
+// ====================== SETTINGS =======================
+
+export interface PasswordPayload {
+  oldPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface PinPayload {
+  oldPin: string;
+  newPin: string;
+  confirmNewPin: string;
+}
+
+export interface OldPasswordPayload {
+  oldPassword: string;
+}
+
+export interface OldPinPayload {
+  oldPin: string;
+}
+
+// ====================== PASSWORD =======================
+
+// Step 1: Verify old password and send OTP (sent in body)
+export const verifyOldPassword = async (payload: OldPasswordPayload) => {
+  const response = await API.post('/settings/verify-old-password', payload);
+  return response.data;
+};
+
+// Step 2: Verify OTP for password (sent as query param)
+export const verifyPasswordOtp = async (otp: string) => {
+  const response = await API.post(`/settings/verify-password-otp?otp=${encodeURIComponent(otp)}`);
+  return response.data;
+};
+
+// Step 3: Change password
+export const changePassword = async (payload: PasswordPayload) => {
+  const response = await API.post('/settings/change-password', payload);
+  return response.data;
+};
+
+// ====================== PIN =======================
+
+// Step 1: Verify old PIN and send OTP
+export const verifyOldPin = async (payload: OldPinPayload) => {
+  const response = await API.post('/settings/verify-old-pin', payload);
+  return response.data;
+};
+
+// Step 2: Verify OTP for PIN (sent as query param)
+export const verifyPinOtp = async (otp: string) => {
+  const response = await API.post(`/settings/verify-pin-otp?otp=${encodeURIComponent(otp)}`);
+  return response.data;
+};
+
+// Step 3: Change PIN
+export const changePin = async (payload: PinPayload) => {
+  const response = await API.post('/settings/change-pin', payload);
+  return response.data;
+};
+
+// ====================== AGENTS =======================
+
+export const fetchAllAgents = async () => {
+  const response = await API.get('/agents/all');
+  return response.data;
+};
+
+export const fetchWeeklyTransactions = async () => {
+  const response = await API.get('/agents/weekly-transactions');
+  return response.data;
+};
+
+// ================= TILL ====================
+export const getAllTills = async () =>{
+    const response = await API.get('/tills/all');
+    return response.data;
+} 
+export const getWeeklyTillSales = async () =>{
+    const response = await API.get('/tills/weekly-sales');
+    return response.data;
+} 
+
+// ================== SAVING =======================
+export const getMonthlySavings = async (accountNumber: string) => {
+  const response = await API.get(`/savings/monthly-balance?accountNumber=${accountNumber}`);
+  return response.data;
+};
+
+export const getSavingsTransactions = async (accountNumber: string) => {
+  const response = await API.get(`/savings/transactions?accountNumber=${accountNumber}`);
+  return response.data;
+};
+
+// ================== PAYBILL =======================
+export const getPaybillMonthlyUsage = async (accountNumber: string) => {
+  const response = await API.get(`/paybill/monthly-usage?accountNumber=${accountNumber}`);
+  return response.data;
+};
+
+export const getPaybillTransactions = async (accountNumber: string) => {
+  const response = await API.get(`/paybill/transactions?accountNumber=${accountNumber}`);
+  return response.data;
 };

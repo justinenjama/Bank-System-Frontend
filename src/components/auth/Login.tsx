@@ -1,167 +1,136 @@
 import React, { useState } from 'react';
-import { login as loginAPI } from '../../service/Service';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import Spinner from '../Spinner';
-import { useAuth } from '../../components/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import LoginImage from '../../assets/img/loan-bg.png';
+import { login } from '../../service/Service';
+import { useAuth } from '../../components/AuthContext';
+import Spinner from '../Spinner';
+import { v4 as uuidv4 } from 'uuid';
 
 const Login: React.FC = () => {
-    const location = useLocation();
     const navigate = useNavigate();
-    const { user, setUser } = useAuth();
-    const from = (location.state as any)?.from?.pathname || '/';
+    const { setUser } = useAuth();
 
-    const [form, setForm] = useState({
-        email: '',
-        password: '',
-        rememberThisDevice: false,
-    });
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [rememberDevice, setRememberDevice] = useState(true);
     const [loading, setLoading] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
-        setForm(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
-    };
-
-    const isFormValid = form.email.trim() !== '' && form.password.length >= 6;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!isFormValid) {
-            toast.error('Please enter a valid email and a password with at least 6 characters.');
-            return;
-        }
-
         setLoading(true);
 
+        // Get or generate device ID
+        let deviceId = localStorage.getItem("device_id");
+        if (!deviceId) {
+            deviceId = uuidv4();
+            localStorage.setItem("device_id", deviceId);
+        }
+
+        // Get GPS coordinates
+        const coords = await getCoordinates();
+
+        // Get Public IP
+        const ipAddress = await fetch("https://api.ipify.org?format=json")
+            .then(res => res.json())
+            .then(data => data.ip)
+            .catch(() => "Unknown");
+
         try {
-            const data = await loginAPI(form);
+            const res = await login({
+                email,
+                password,
+                deviceId,
+                rememberThisDevice: rememberDevice,
+                latitude: coords.lat,
+                longitude: coords.lon,
+                ipAddress
+            });
 
-            switch (data.responseCode) {
-                case "429":
-                    toast.error(data.responseMessage || 'Too many attempts. Try again later.');
-                    return;
-                case "403":
-                    toast.error("Your account is locked or pending approval.");
-                    return;
-                case "401":
-                    toast.error(data.responseMessage || "Invalid email or password.");
-                    return;
-                case "206":
-                    toast.info("OTP verification required for untrusted device.", { autoClose: 3000 });
-                    sessionStorage.setItem("otp_email", form.email);
-                    navigate("/verify-otp", { state: { email: form.email } });
-                    return;
-                case "500":
-                    toast.error("Server error. Please try again later.");
-                    return;
-                case "200":
-                    break;
-                default:
-                    toast.error(data.responseMessage || 'Login failed.');
-                    return;
+            const code = res.responseCode;
+
+            if (code === "401" || code === "403") {
+                toast.error(res.responseMessage);
+                return;
             }
 
-            if (!data.user) {
-                throw new Error("User information missing from response.");
+            if (code === "206") {
+                sessionStorage.setItem("otp_email", email);
+                toast.info("OTP required for new device. Check your email.");
+                navigate("/verify-otp", { state: { email, deviceId } });
+                return;
             }
 
-            localStorage.clear();
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('role', data.user.role);
+            if (code === "200" && res.user) {
+                const user = res.user;
+                const fullName = `${user.firstName} ${user.otherName}`;
+                setUser({ ...user, fullName, role: user.role });
 
-            const fullName = `${data.user.firstName} ${data.user.otherName}`;
-            const userObject = {
-                ...data.user,
-                fullName,
-                token: data.token,
-                role: data.user.role,
-            };
-
-            localStorage.setItem('user', JSON.stringify(userObject));
-            setUser(userObject);
-
-            toast.success('Login successful!', { autoClose: 2000 });
-
-            if (userObject.role.toLowerCase() === 'admin') {
-                navigate('/admin', { replace: true });
+                toast.success("Login successful");
+                navigate(user.role.toLowerCase() === "admin" ? "/admin" : "/");
             } else {
-                navigate(from, { replace: true });
+                toast.error(res.responseMessage || "Login failed");
             }
 
-        } catch (err: any) {
-            toast.error(err?.message || 'Login failed due to network/server error.');
+        } catch (error: any) {
+            toast.error(error?.message || "Login error occurred");
         } finally {
             setLoading(false);
         }
     };
 
-    if (user) {
-        if (user.role.toLowerCase() === 'admin') return <Navigate to="/admin" replace />;
-        return <Navigate to={from} replace />;
-    }
+    const getCoordinates = (): Promise<{ lat: number; lon: number }> => {
+        return new Promise((resolve) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+                    },
+                    () => resolve({ lat: 0, lon: 0 }),
+                    { timeout: 5000 }
+                );
+            } else {
+                resolve({ lat: 0, lon: 0 });
+            }
+        });
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <img src={LoginImage} alt="Bank Login" className="absolute inset-0 w-full h-full object-cover" />
-            <div className="w-full max-w-md p-6 bg-white rounded shadow-xl absolute">
-                <h2 className="text-2xl font-bold mb-6 text-center text-green-700">Login</h2>
-                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="email"
-                        name="email"
                         placeholder="Email"
-                        value={form.email}
-                        onChange={handleChange}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                         className="w-full border border-gray-300 p-2 rounded"
-                        autoComplete="email"
                     />
                     <input
                         type="password"
-                        name="password"
                         placeholder="Password"
-                        value={form.password}
-                        onChange={handleChange}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                         className="w-full border border-gray-300 p-2 rounded"
-                        autoComplete="current-password"
-                        minLength={6}
                     />
-                    <div className="flex items-center space-x-2">
+                    <label className="flex items-center space-x-2 text-sm text-gray-600">
                         <input
                             type="checkbox"
-                            name="rememberThisDevice"
-                            checked={form.rememberThisDevice}
-                            onChange={handleChange}
+                            checked={rememberDevice}
+                            onChange={(e) => setRememberDevice(e.target.checked)}
                         />
-                        <label htmlFor="rememberThisDevice" className="text-sm text-gray-600">Remember this device</label>
-                    </div>
+                        <span>Remember this device</span>
+                    </label>
                     <button
                         type="submit"
-                        disabled={loading || !isFormValid}
-                        className={`w-full p-2 rounded text-white transition ${loading || !isFormValid
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700'
-                            }`}
+                        disabled={loading}
+                        className={`w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {loading ? <Spinner size="small" /> : 'Login'}
+                        {loading ? <Spinner size="small" /> : "Login"}
                     </button>
                 </form>
-
-                <div className="text-center mt-4 text-sm text-gray-600">
-                    Don’t have an account?{' '}
-                    <a href="/signup" className="text-blue-600 hover:underline">Sign up</a>
-                </div>
-                <div className="text-center mt-2 text-sm text-gray-600">
-                    Forgot password?{' '}
-                    <a href="/forgot-password" className="text-blue-600 hover:underline">Reset Password</a>
-                </div>
             </div>
         </div>
     );

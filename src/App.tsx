@@ -22,6 +22,17 @@ import VerifyOtp from './components/auth/VerifyOtp';
 import UserHistoryPage from './pages/UserHistoryPage';
 import PendingApplicationsPage from './pages/admin/PendingApplicationsPage';
 import PendingSignup from './pages/admin/PendingSignup';
+import FlaggedTransactions from './pages/admin/FlaggedTransactions';
+import Loan from './pages/loan/Loan';
+import TrustedDevicesPage from './pages/TrustedDevicesPage';
+import StatementDownloader from './components/StatementDownloader';
+import AdminTrustedDevicesPage from './pages/admin/AdminTrustedDevicesPage';
+import TillAccountPage from './pages/till/TillAccountPage';
+import SavingAccountPage from './pages/saving/SavingAccountPage';
+import PaybillAccountPage from './pages/paybill/PaybillAccountPage';
+import CheckAccountPage from './pages/cheque/CheckAccountPage';
+import AgentAccountPage from './pages/agent/AgentAccountPage';
+import CombinedDashboard from './pages/CombinedDashboard';
 
 const App = () => {
     return (
@@ -54,6 +65,19 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+                        <Route path="/trusted-devices" element={
+                            <AuthGuard>
+                                <TrustedDevicesPage />
+                            </AuthGuard>
+                        }
+                        />
+                        <Route path="/account/statement" element={
+                            <AuthGuard>
+                                <StatementDownloader />
+                            </AuthGuard>
+                        } 
+                        />
+
                         <Route path="/admin/pending-transactions" element={
                             <AuthGuard>
                                 <PendingTransactions />
@@ -71,6 +95,12 @@ const App = () => {
                                 <PendingSignup />
                             </AuthGuard>
                         }/>
+                        <Route path='/admin/flagged-transactions' element={
+                            <AuthGuard>
+                                <FlaggedTransactions />
+                            </AuthGuard>
+                        }/>
+
                         <Route path="/admin/loans/active" element={
                             <AuthGuard>
                                 <ActiveLoans />
@@ -95,6 +125,12 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+                        <Route path="/admin/trusted-devices" element={
+                            <AuthGuard>
+                                <AdminTrustedDevicesPage />
+                            </AuthGuard>
+                        } 
+                        />
                         <Route path="/account" element={
                             <AuthGuard>
                                 <Account />
@@ -107,6 +143,55 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+                        <Route path="/agent-account" element={
+                            <AuthGuard>
+                                <AgentAccountPage />
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/till-account" element={
+                            <AuthGuard>
+                                <TillAccountPage />
+                            </AuthGuard>
+                            
+                        } 
+                        />
+                        <Route path="/saving-account" element={
+                            <AuthGuard>
+                                <SavingAccountPage />
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/paybill-account" element={
+                            <AuthGuard>
+                                <PaybillAccountPage />  
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/check-account" element={
+                            <AuthGuard>
+                                <CheckAccountPage />
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/statement" element={
+                            <AuthGuard>
+                                <StatementDownloader />
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/dashboard" element={
+                            <AuthGuard>
+                                <CombinedDashboard />
+                            </AuthGuard>
+                        } 
+                        />
+                        <Route path="/loan" element={
+                            <AuthGuard>
+                                <Loan />
+                            </AuthGuard>
+                        } />
+
                         <Route path="*" element={
                             <AuthGuard>
                                 <NotFound />

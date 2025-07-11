@@ -5,9 +5,10 @@ import Spinner from "./Spinner";
 
 interface AuthGuardProps {
   children: ReactNode;
+  requiredRole?: string;
 }
 
-const AuthGuard = ({ children }: AuthGuardProps) => {
+const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
   const location = useLocation();
   const { user, loading } = useAuth();
 
@@ -15,8 +16,12 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     return <Spinner />;
   }
 
-  if (!user && location.pathname !== "/login") {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { jwtDecode, InvalidTokenError } from 'jwt-decode';
+import { getSessionUser } from "../service/Service"; 
+
 import type { AuthContextType } from '../types/AuthContextType';
 import type { User } from '../types/UserType';
 
@@ -10,44 +11,19 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        let timeout: ReturnType<typeof setTimeout> | null = null;
-
-        if (token && storedUser) {
+        const fetchSessionUser = async () => {
             try {
-                const parts = token.split('.');
-                if (parts.length !== 3) throw new InvalidTokenError('Token does not have 3 parts');
-
-                const decoded = jwtDecode<{ sub: string; role: string; exp: number }>(token);
-                const now = Date.now() / 1000;
-
-                if (decoded.exp && decoded.exp < now) {
-                    console.warn('AuthProvider: Token has expired');
-                    setUser(null);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                } else {
-                    const parsedUser = JSON.parse(storedUser);
-                    setUser(parsedUser);
-
-                    const msUntilExpiration = decoded.exp * 1000 - Date.now();
-                    timeout = setTimeout(() => {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        setUser(null);
-                    }, msUntilExpiration);
-                }
-            } catch (e) {
-                console.error('AuthProvider: Failed to decode token', e);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+                const res = await getSessionUser();
+                setUser(res);
+            } catch (error) {
+                console.error('AuthProvider: Not authenticated', error);
                 setUser(null);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
 
-        setLoading(false);
-        return () => { if (timeout) clearTimeout(timeout); };
+        fetchSessionUser();
     }, []);
 
     return (

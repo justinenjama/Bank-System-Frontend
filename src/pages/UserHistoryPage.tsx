@@ -21,11 +21,23 @@ const UserHistoryPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white">
+        <div className="h-screen flex flex-col bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white">
             <Header sidebarOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-            <div className="flex flex-1">
+            <div className="flex flex-1 overflow-hidden">
                 <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
                 <main className="flex-1 p-6 mt-16 md:mt-0 overflow-y-auto">
+
+                    <h2 className="text-2xl font-bold mb-6">User History</h2>
+
+                    <div className="mb-6">
+                        <a
+                            href="/trusted-devices"
+                            className="inline-block text-blue-600 hover:underline text-sm font-medium"
+                        >
+                            → View Trusted Devices
+                        </a>
+                    </div>
+
                     <h2 className="text-2xl font-bold mb-6">User History</h2>
 
                     <section className="mb-10">

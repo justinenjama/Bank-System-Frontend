@@ -9,7 +9,7 @@ import TillApplication from "../applications/TillApplication";
 import AgentApplication from "../applications/AgentApplication";
 
 export default function Applications() {
-    const [activeTab, setActiveTab] = useState<"loan" | "paybill" | "till" | "agent">("loan");
+    const [activeTab, setActiveTab] = useState<"paybill" | "till" | "agent">("paybill");
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
@@ -25,13 +25,11 @@ export default function Applications() {
                     <div className="max-w-5xl mx-auto space-y-8">
                         <h2 className="text-3xl font-bold text-gray-800">Bank Service Applications</h2>
                         <div className="flex flex-wrap gap-4">
-                            <TabButton label="Loan Application" active={activeTab === "loan"} onClick={() => setActiveTab("loan")} />
                             <TabButton label="PayBill Application" active={activeTab === "paybill"} onClick={() => setActiveTab("paybill")} />
                             <TabButton label="Till Number" active={activeTab === "till"} onClick={() => setActiveTab("till")} />
                             <TabButton label="Agent Number" active={activeTab === "agent"} onClick={() => setActiveTab("agent")} />
                         </div>
                         <div>
-                            {activeTab === "loan" && <LoanApplication />}
                             {activeTab === "paybill" && <PayBillApplication />}
                             {activeTab === "till" && <TillApplication />}
                             {activeTab === "agent" && <AgentApplication />}
