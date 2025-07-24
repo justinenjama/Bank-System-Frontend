@@ -36,6 +36,7 @@ export default function Header({ sidebarOpen, toggleSidebar }: HeaderProps) {
   const logout = async () => {
     try {
       await logoutService();
+      localStorage.removeItem("bank_user");
       setUser(null);
       window.location.href = '/login';
     } catch (error) {

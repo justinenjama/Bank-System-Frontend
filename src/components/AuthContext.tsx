@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { getSessionUser } from "../service/Service"; 
-
 import type { AuthContextType } from '../types/AuthContextType';
 import type { User } from '../types/UserType';
 
@@ -13,11 +12,20 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const fetchSessionUser = async () => {
             try {
+                const cachedUser = localStorage.getItem("bank_user");
+                if (cachedUser) {
+                    setUser(JSON.parse(cachedUser));
+                    return;
+                }
+
                 const res = await getSessionUser();
                 setUser(res);
+                localStorage.setItem("bank_user", JSON.stringify(res));
+
             } catch (error) {
                 console.error('AuthProvider: Not authenticated', error);
                 setUser(null);
+                localStorage.removeItem("bank_user");
             } finally {
                 setLoading(false);
             }

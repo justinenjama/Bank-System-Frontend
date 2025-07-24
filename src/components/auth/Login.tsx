@@ -63,11 +63,18 @@ const Login: React.FC = () => {
             if (code === "200" && res.user) {
                 const user = res.user;
                 const fullName = `${user.firstName} ${user.otherName}`;
-                setUser({ ...user, fullName, role: user.role });
+                const updatedUser = { ...user, fullName, role: user.role };
+
+                // Save to AuthContext
+                setUser(updatedUser);
+
+                // Persist to localStorage
+                localStorage.setItem("bank_user", JSON.stringify(updatedUser));
 
                 toast.success("Login successful");
                 navigate(user.role.toLowerCase() === "admin" ? "/admin" : "/");
-            } else {
+            }
+            else {
                 toast.error(res.responseMessage || "Login failed");
             }
 
