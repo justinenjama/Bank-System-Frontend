@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+    --color-primary: #FFA500;
+}
+
+.input {
+    @apply w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400;
+}
+
+html {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+
+body {
+  @apply bg-white text-black dark:bg-gray-900 dark:text-white;
+}
