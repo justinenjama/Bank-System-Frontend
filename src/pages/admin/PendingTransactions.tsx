@@ -42,8 +42,8 @@ const PendingTransactions = () => {
     const closeSidebar = () => setSidebarOpen(false);
 
     useEffect(() => {
-        const role = localStorage.getItem('role');
-        if (!user || role !== 'ADMIN') {
+        
+        if (!user || user.role?.toUpperCase() !== 'ADMIN') {
             navigate('/unauthorized');
             return;
         }

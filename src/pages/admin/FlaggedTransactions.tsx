@@ -38,11 +38,10 @@ const FlaggedTransactions = () => {
   const closeSidebar = () => setSidebarOpen(false);
 
   useEffect(() => {
-    const role = localStorage.getItem('role');
-    if (!user || role !== 'ADMIN') {
-      navigate('/unauthorized');
-      return;
-    }
+    if (!user || user.role?.toUpperCase() !== 'ADMIN') {
+            navigate('/unauthorized');
+            return;
+        }
     fetchFlagged(page);
   }, [user, navigate, page]);
 

@@ -20,7 +20,7 @@ const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
+  if (requiredRole && user.role?.toUpperCase() !== requiredRole.toUpperCase()) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
