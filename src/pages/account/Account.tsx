@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Credit from "../account/Credit";
 import Debit from "../account/Debit";
 import Transfer from "../account/Transfer";
@@ -10,24 +10,26 @@ import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import Sidebar from "../../components/layout/Sidebar";
 
-export default function Account() {
-    const [activeTab, setActiveTab] = useState<
-        "credit" | "debit" | "transfer" | "savings" | "paybills" | "buygoods"
-    >("credit");
+type TabType = "credit" | "debit" | "transfer" | "savings" | "paybills" | "buygoods";
+
+export default function Account({ tab }: { tab: TabType }) {
+    const [activeTab, setActiveTab] = useState<TabType>(tab || "credit");
+
+    useEffect(() => {
+        setActiveTab(tab); // Update active tab on route change
+    }, [tab]);
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-    const closeSidebar = () => setSidebarOpen(false);
 
     return (
         <div className="flex flex-col h-screen">
             <Toaster position="top-right" />
             <div className="fixed top-0 left-0 right-0 z-50 h-[64px]">
-                <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+                <Header sidebarOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
             </div>
 
             <div className="flex flex-1 pt-[64px] pb-[60px] overflow-hidden">
-                <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
+                <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
                 <main className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-gray-200">
                     <div className="max-w-5xl mx-auto space-y-8">
                         <h2 className="text-3xl font-bold text-gray-800">Account Operations</h2>

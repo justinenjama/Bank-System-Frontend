@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import Home from './pages/Home';
@@ -131,18 +131,64 @@ const App = () => {
                             </AuthGuard>
                         } 
                         />
-                        <Route path="/account" element={
+                        <Route path="/account" element={<Navigate to="/account/credit" />} />
+
+                        <Route path="/account/credit" element={
                             <AuthGuard>
-                                <Account />
+                                <Account tab="credit" />
                             </AuthGuard>
-                        }
-                        />
-                        <Route path="/applications" element={
+                        } />
+
+                        <Route path="/account/debit" element={
                             <AuthGuard>
-                                <Applications />
+                                <Account tab="debit" />
                             </AuthGuard>
-                        }
-                        />
+                        } />
+
+                        <Route path="/account/transfer" element={
+                            <AuthGuard>
+                                <Account tab="transfer" />
+                            </AuthGuard>
+                        } />
+
+                        <Route path="/account/savings" element={
+                            <AuthGuard>
+                                <Account tab="savings" />
+                            </AuthGuard>
+                        } />
+
+                        <Route path="/account/paybills" element={
+                            <AuthGuard>
+                                <Account tab="paybills" />
+                            </AuthGuard>
+                        } />
+
+                        <Route path="/account/buygoods" element={
+                            <AuthGuard>
+                                <Account tab="buygoods" />
+                            </AuthGuard>
+                        } />
+
+                        
+                        <Route path="/applications" element={<Navigate to="/applications/paybill" />} />
+
+                        <Route path="/applications/paybill" element={
+                            <AuthGuard>
+                                <Applications tab="paybill" />
+                            </AuthGuard>
+                        } />
+
+                        <Route path="/applications/till" element={
+                            <AuthGuard>
+                                <Applications tab="till" />
+                            </AuthGuard>
+                        } />
+
+                        <Route path="/applications/agent" element={
+                            <AuthGuard>
+                                <Applications tab="agent" />
+                            </AuthGuard>
+                        } />
                         <Route path="/agent-account" element={
                             <AuthGuard>
                                 <AgentAccountPage />
@@ -198,6 +244,7 @@ const App = () => {
                             </AuthGuard>
                         }
                         />
+
                         {/*<Route path="/repay-loan" element={<LoanRepayment />} />
                         <Route path="/loan/activate" element={<LoanActivation />} />
                         <Route path="/loan/details" element={<LoanDetails />} />*/}

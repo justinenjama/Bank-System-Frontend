@@ -1,16 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import Sidebar from "../../components/layout/Sidebar";
-import LoanApplication from "../loan/LoanApplication";
 import PayBillApplication from "../applications/PayBillApplication";
 import TillApplication from "../applications/TillApplication";
 import AgentApplication from "../applications/AgentApplication";
 
-export default function Applications() {
-    const [activeTab, setActiveTab] = useState<"paybill" | "till" | "agent">("paybill");
+type TabType = "paybill" | "till" | "agent";
+
+export default function Applications({ tab }: { tab?: "paybill" | "till" | "agent" }) {
+
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<TabType>(tab || "paybill");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Extract tab name from URL path
+    useEffect(() => {
+        const path = location.pathname;
+        if (path.includes("/paybill")) setActiveTab("paybill");
+        else if (path.includes("/till")) setActiveTab("till");
+        else if (path.includes("/agent")) setActiveTab("agent");
+    }, [location.pathname]);
+
+    const handleTabClick = (tab: TabType) => {
+        setActiveTab(tab);
+        navigate(`/applications/${tab}`);
+    };
 
     return (
         <div className="flex flex-col h-screen">
@@ -25,9 +43,9 @@ export default function Applications() {
                     <div className="max-w-5xl mx-auto space-y-8">
                         <h2 className="text-3xl font-bold text-gray-800">Bank Service Applications</h2>
                         <div className="flex flex-wrap gap-4">
-                            <TabButton label="PayBill Application" active={activeTab === "paybill"} onClick={() => setActiveTab("paybill")} />
-                            <TabButton label="Till Number" active={activeTab === "till"} onClick={() => setActiveTab("till")} />
-                            <TabButton label="Agent Number" active={activeTab === "agent"} onClick={() => setActiveTab("agent")} />
+                            <TabButton label="PayBill Application" active={activeTab === "paybill"} onClick={() => handleTabClick("paybill")} />
+                            <TabButton label="Till Number" active={activeTab === "till"} onClick={() => handleTabClick("till")} />
+                            <TabButton label="Agent Number" active={activeTab === "agent"} onClick={() => handleTabClick("agent")} />
                         </div>
                         <div>
                             {activeTab === "paybill" && <PayBillApplication />}
