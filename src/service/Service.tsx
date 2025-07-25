@@ -12,18 +12,6 @@ const API = axios.create({
   withCredentials: true, 
 });
 
-API.interceptors.response.use(
-  res => res,
-  error => {
-    if (error.response?.status === 401) {
-        toast.info("Session expired, please log in again.");
-      // Optionally redirect to login or show toast for expired session
-      window.location.href = '/login'; 
-    }
-    return Promise.reject(error);
-  }
-);
-
 // ====================== AUTH =======================
 
 export const signUp = async (payload: any) => {
