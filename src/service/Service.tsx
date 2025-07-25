@@ -5,12 +5,24 @@ import type { PayBillRequestType } from '../types/PayBillRequestType';
 import type { TillRequestType } from '../types/TillRequestType';
 import type { AgentRequestType } from '../types/AgentRequestType';
 import type { TrustedDeviceType } from '../types/TrustedDeviceType';
+import { toast } from 'react-toastify';
 
 const API = axios.create({
   baseURL: 'https://bank-system-backend-production.up.railway.app/',
   withCredentials: true, 
 });
 
+API.interceptors.response.use(
+  res => res,
+  error => {
+    if (error.response?.status === 401) {
+        toast.info("Session expired, please log in again.");
+      // Optionally redirect to login or show toast for expired session
+      window.location.href = '/login'; 
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ====================== AUTH =======================
 
@@ -20,9 +32,7 @@ export const signUp = async (payload: any) => {
 };
 
 export const login = async (payload: any) => {
-    const response = await API.post('/user/login', payload, {
-        withCredentials: true,
-    });
+    const response = await API.post('/user/login', payload);
     return response.data;
 };
 
@@ -42,9 +52,7 @@ export const verifyOtp = async (payload: {
     userAgent: string;
     deviceId: string;
 }) => {
-    const response = await API.post('/user/verify-otp', payload, {
-        withCredentials: true,
-    });
+    const response = await API.post('/user/verify-otp', payload);
     return response.data;
 };
 
