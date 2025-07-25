@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login } from '../../service/Service';
 import { useAuth } from '../../components/AuthContext';
@@ -19,17 +19,14 @@ const Login: React.FC = () => {
         e.preventDefault();
         setLoading(true);
 
-        // Get or generate device ID
         let deviceId = localStorage.getItem("device_id");
         if (!deviceId) {
             deviceId = uuidv4();
             localStorage.setItem("device_id", deviceId);
         }
 
-        // Get GPS coordinates
         const coords = await getCoordinates();
 
-        // Get Public IP
         const ipAddress = await fetch("https://api.ipify.org?format=json")
             .then(res => res.json())
             .then(data => data.ip)
@@ -65,16 +62,12 @@ const Login: React.FC = () => {
                 const fullName = `${user.firstName} ${user.otherName}`;
                 const updatedUser = { ...user, fullName, role: user.role };
 
-                // Save to AuthContext
                 setUser(updatedUser);
-
-                // Persist to localStorage
                 localStorage.setItem("bank_user", JSON.stringify(updatedUser));
 
                 toast.success("Login successful");
                 navigate(user.role.toLowerCase() === "admin" ? "/admin" : "/");
-            }
-            else {
+            } else {
                 toast.error(res.responseMessage || "Login failed");
             }
 
@@ -102,9 +95,9 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
             <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="email"
@@ -112,7 +105,7 @@ const Login: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full border border-gray-300 p-2 rounded"
+                        className="w-full border border-gray-300 p-2 rounded text-gray-800"
                     />
                     <input
                         type="password"
@@ -120,8 +113,19 @@ const Login: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="w-full border border-gray-300 p-2 rounded"
+                        className="w-full border border-gray-300 p-2 rounded text-gray-800"
                     />
+
+                    {/* Forgot Password Link */}
+                    <div className="text-right text-sm">
+                        <Link
+                            to="/forgot-password"
+                            className="text-blue-600 hover:underline"
+                        >
+                            Forgot password?
+                        </Link>
+                    </div>
+
                     <label className="flex items-center space-x-2 text-sm text-gray-600">
                         <input
                             type="checkbox"
@@ -130,12 +134,14 @@ const Login: React.FC = () => {
                         />
                         <span>Remember this device</span>
                     </label>
+
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`w-full flex justify-center items-center gap-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200 ${loading ? 'opacity-80 cursor-not-allowed' : ''}`}
                     >
-                        {loading ? <Spinner size="small" /> : "Login"}
+                        {loading && <Spinner size="small" />}
+                        <span>Login</span>
                     </button>
                 </form>
             </div>
